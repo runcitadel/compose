@@ -53,6 +53,14 @@ if [[ ! -z "${CITADEL_OS:-}" ]]; then
         echo "ERROR: No Umbrel or Citadel installation found at SD root ${SD_CARD_NODE_ROOT}"
         echo "Skipping updating on SD Card..."
     fi
+
+    # This makes sure systemd services are always updated (and new ones are enabled).
+    UMBREL_SYSTEMD_SERVICES="${UMBREL_ROOT}/.umbrel-${RELEASE}/scripts/umbrel-os/services/*.service"
+    for service_path in $UMBREL_SYSTEMD_SERVICES; do
+      service_name=$(basename "${service_path}")
+      install -m 644 "${service_path}" "/etc/systemd/system/${service_name}"
+      systemctl enable "${service_name}"
+    done
 fi
 
 cat <<EOF > "$NODE_ROOT"/statuses/update-status.json
