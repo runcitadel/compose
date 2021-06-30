@@ -1,32 +1,23 @@
-[![Umbrel](https://static.getumbrel.com/github/github-banner-umbrel.svg)](https://github.com/getumbrel/umbrel)
+# compose
 
-[![Version](https://img.shields.io/github/v/release/getumbrel/umbrel?color=%235351FB&label=version)](https://github.com/getumbrel/umbrel/releases)
-[![Community Chat](https://img.shields.io/badge/community%20chat-telegram-%235351FB)](https://t.me/getumbrel)
-[![Developer Chat](https://img.shields.io/badge/dev%20chat-keybase-%235351FB)](https://keybase.io/team/getumbrel)
+> This software is currently in beta and is not considered secure. Please see [SECURITY.md](SECURITY.md) for more details.
 
-[![Twitter](https://img.shields.io/twitter/follow/getumbrel?style=social)](https://twitter.com/getumbrel)
-[![Reddit](https://img.shields.io/reddit/subreddit-subscribers/getumbrel?label=Subscribe%20%2Fr%2Fgetumbrel&style=social)](https://reddit.com/r/getumbrel)
+This is the main respository of an open source bitcoin node project and contains the framework for orchestration of all containerized services running on [our OS](https://github.com/BitcoinNodeCommunity/os).
 
-# ☂️ Umbrel
+It is platform and architecture-agnostic, thus can be used to directly spin up instances of Umbrel without installing the [our OS](https://github.com/BitcoinNodeCommunity/os) since all orchestrated services use multi-architecture Docker images.
 
-> ⚠️ Umbrel is currently in beta and is not considered secure. Please see [SECURITY.md](SECURITY.md) for more details.
-
-This is the master respository of Umbrel and contains the framework for orchestration of all containerized services running on [Umbrel OS](https://github.com/getumbrel/umbrel-os).
-
-It is platform and architecture-agnostic, thus can be used to directly spin up instances of Umbrel without installing the [Umbrel OS](https://github.com/getumbrel/umbrel-os) since all orchestrated services use multi-architecture Docker images.
-
-We run it on Raspbery Pis (ARMv7) as a part of [Umbrel OS](https://github.com/getumbrel/umbrel-os), Ubuntu (x64) for [testnet.getumbrel.com](https://testnet.getumbrel.com) and macOS (x64) for local development.
+We run it on Raspbery Pis (ARMv8) as a part of [our OS](https://github.com/BitcoinNodeCommunity/os) and Ubuntu (x64).
 
 ## 🚀 Getting started
 
-If you're looking to run Umbrel on:
+If you're looking to run a Bitcoin node on:
 
-- A Raspberry Pi 3 or 4 (recommended) - [Download Umbrel OS](https://github.com/getumbrel/umbrel-os)
-- Anything else (**not recommended** as it's experimental at the moment) - [Install Umbrel](#-installation)
+- A Raspberry Pi 4 (recommended) - [Download our OS](https://github.com/BitcoinNodeCommunity/os)
+- Anything else (**not recommended** as it's experimental at the moment) - [Install](#-installation)
 
 ## 🛠 Installation
 
-[Umbrel OS for Raspberry Pi](https://github.com/getumbrel/umbrel-os) is the easiest and the **recommended** way to run Umbrel. If you don't have a Raspberry Pi, you can manually install Umbrel on any hardware running a Linux-based operating system such as Ubuntu, Debian, etc by following the instructions below, but please note it's not the recommended way to run Umbrel as it's still very experimental.
+[Our OS for the Raspberry Pi](https://github.com/BitcoinNodeCommunity/os) is the easiest and the **recommended** way to run Umbrel. If you don't have a Raspberry Pi, you can manually install Umbrel on any hardware running a Linux-based operating system such as Ubuntu, Debian, etc by following the instructions below, but please note it's not the recommended way to run Umbrel as it's still very experimental.
 
 ### Installation Requirements
 
@@ -37,18 +28,18 @@ If you're looking to run Umbrel on:
 
 Make sure your User ID is `1000` (verify it by running `id -u`) and ensure that your account is [correctly permissioned to use docker](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
 
-### Step 1. Download Umbrel
+### Step 1. Download
 
-> Run this in an empty directory where you want to install Umbrel. If using an external storage such as an SSD or HDD, run this inside an empty directory on that drive.
+> Run this in an empty directory where you want to install this project. If using an external storage such as an SSD or HDD, run this inside an empty directory on that drive.
 
 ```bash
-curl -L https://github.com/getumbrel/umbrel/archive/v0.2.10.tar.gz | tar -xz --strip-components=1
+curl -L https://github.com/BitcoinNodeCommunity/compose/archive/main.tar.gz | tar -xz --strip-components=1
 ```
 
-### Step 2. Run Umbrel
+### Step 2. Run
 
 ```bash
-# To use Umbrel on mainnet, run:
+# To use mainnet, run:
 sudo ./scripts/start
 
 # For testnet, run:
@@ -58,7 +49,7 @@ sudo NETWORK=testnet ./scripts/start
 sudo NETWORK=regtest ./scripts/start
 ```
 
-To stop Umbrel, run:
+To stop the node, run:
 
 ```bash
 sudo ./scripts/stop
@@ -66,12 +57,12 @@ sudo ./scripts/stop
 
 ## 🎹 Services orchestrated
 
-- [`Umbrel Dashboard`](https://github.com/getumbrel/umbrel-dashboard)
-- [`Umbrel Manager`](https://github.com/getumbrel/umbrel-manager)
-- [`Umbrel Middleware`](https://github.com/getumbrel/umbrel-middleware)
-- [`Bitcoin Core`](https://github.com/getumbrel/docker-bitcoind)
-- [`LND`](https://github.com/getumbrel/docker-lnd)
-- [`Tor`](https://github.com/getumbrel/docker-tor)
+- [`Umbrel Dashboard`](https://github.com/getumbrel/umbrel-dashboard) Please note: This will be replaced soon and is only used temporarily
+- [`Manager`](https://github.com/BitcoinNodeCommunity/manager)
+- [`Middleware`](https://github.com/BitcoinNodeCommunity/middleware)
+- [`Bitcoin Core`](https://github.com/lncm/docker-bitcoind)
+- [`LND`](https://github.com/lncm/docker-lnd)
+- [`Tor`](https://github.com/lncm/docker-tor)
 - [`Nginx`](https://github.com/nginx/nginx)
 - [`Neutrino Switcher`](https://github.com/lncm/docker-lnd-neutrino-switch)
 
@@ -80,7 +71,7 @@ sudo ./scripts/stop
 
 ```
                           + -------------------- +
-                          |   umbrel-dashboard   |
+                          |      dashboard       |
                           + -------------------- +
                                       |
                                       |
@@ -89,12 +80,12 @@ sudo ./scripts/stop
                               + ------------- +
                                       |
                                       |
-              + - - - - - - - - - - - + - - - - - - - - - - - +
-              |                                               |
-              |                                               |
-   + ------------------ +                         + --------------------- +
-   |   umbrel-manager   | < - - - jwt auth - - -  |   umbrel-middleware   |
-   + ------------------ +                         + --------------------- +
+              + - - - - - - - - - - - + - - - - - - - - +
+              |                                         |
+              |                                         |
+   +------------ +                         + -------------------- +
+   |   manager   | < - - - jwt auth - - -  |      middleware      |
+   + ----------- +                         + -------------------- +
                                                               |
                                                               |
                                             + - - - - - - - - + - - - - - - - - +
@@ -109,7 +100,7 @@ sudo ./scripts/stop
 
 ## ⚡️ Don't be too reckless
 
-Umbrel is still in beta development and should not be considered secure. [Read our writeup of security tradeoffs](https://github.com/getumbrel/umbrel/blob/master/SECURITY.md) that exist today.
+This project is still in beta development and should not be considered secure. [Read our writeup of security tradeoffs](https://github.com/BitcoinNodeCommunity/compose/blob/main/SECURITY.md) that exist today.
 
 It's recommended that you note down your 24 secret words (seed phrase) with a pen and paper, and secure it safely. If you forget your dashboard's password, or in case something goes wrong with your Umbrel, you will need these 24 words to recover your funds in the Bitcoin wallet of your Umbrel.
 
@@ -119,14 +110,13 @@ You're also recommended to download a backup of your payment channels regularly 
 
 We welcome and appreciate new contributions.
 
-If you're a developer looking to help but not sure where to begin, check out [these issues](https://github.com/getumbrel/umbrel/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) that have specifically been marked as being friendly to new contributors.
+If you're a developer looking to help but not sure where to begin, check out [these issues](https://github.com/BitcoinNodeCommunity/compose/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) that have specifically been marked as being friendly to new contributors.
 
-If you're looking for a bigger challenge, before opening a pull request please [create an issue](https://github.com/getumbrel/umbrel/issues/new/choose) or [join our community chat](https://t.me/getumbrel) to get feedback, discuss the best way to tackle the challenge, and to ensure that there's no duplication of work.
+If you're looking for a bigger challenge, before opening a pull request please [create an issue](https://github.com/BitcoinNodeCommunity/compose/issues/new/choose) or [join our community chat](https://t.me/getumbrel) to get feedback, discuss the best way to tackle the challenge, and to ensure that there's no duplication of work.
 
 ---
 
 _"Being open source means anyone can independently review the code. If it was closed source, nobody could verify the security. I think it's essential for a program of this nature to be open source." — Satoshi Nakamoto_
 
-[![License](https://img.shields.io/github/license/getumbrel/umbrel?color=%235351FB)](https://github.com/getumbrel/umbrel/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/BitcoinNodeCommunity/compose?color=%235351FB)](https://github.com/BitcoinNodeCommunity/compose/blob/master/LICENSE)
 
-[getumbrel.com](https://getumbrel.com)

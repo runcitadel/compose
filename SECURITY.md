@@ -1,6 +1,6 @@
 # Security Disclosure
 
-**Umbrel is currently in beta and is not considered secure.**
+**This project is currently in beta and is not considered secure.**
 
 We are trying to iterate rapidly and build out our vision and only have so many hours in the day. Due to this, we've decided to make the following trade-offs to allow us to ship a working beta with critical features, such as over-the-air (OTA) updates and easy log access, as soon as possible.
 
@@ -16,10 +16,4 @@ During the beta phase we are making use of Node.js and its rich ecosystem of npm
 
 The lack of authentication on the logs page means that, in the correct circumstances, if someone could convince you to visit a malicious website, the website may be able to read the logs of your Umbrel.
 
-**SSH password of Umbrel OS.**
-
-Umbrel OS's current SSH password is same for all Umbrel OS users. In the future we'll have it automatically change to the user's dashboard password, but for now if a malicious actor is on the same network as your Umbrel node (running Umbrel OS), they could SSH into your node using the publicly available password. For that reason, we recommend advanced users to manually update their SSH password.
-
-Umbrel, in its current state, is intended to demonstrate what we have in mind, show the community what we are building, and to get early feedback. It's in a state that it can be used, but should not be considered secure. Thus, **you should not put more funds on your Umbrel than you're prepared to lose.**
-
-The issues raised above will all be resolved before we do a stable release of Umbrel.
+The issues raised above will all be resolved before we do a stable release.
