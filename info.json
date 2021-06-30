@@ -1,6 +1,6 @@
 {
-    "version": "0.2.10",
-    "name": "Umbrel v0.2.10",
-    "requires": ">=0.2.1",
-    "notes": "This update brings some minor bugfixes and adds monitoring functionality to ensure your external storage device is running reliably."
+    "version": "0.0.1",
+    "name": "Test release",
+    "requires": ">=0.0.1",
+    "notes": "Just setting up my node"
 }
