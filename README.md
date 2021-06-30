@@ -124,4 +124,4 @@ _"Being open source means anyone can independently review the code. If it was cl
 
 ---
 
-This project was made possible by [Umbrel](https://getumbrel.com)
+This project was made possible by [Umbrel](https://getumbrel.com) which is Copyright (c) 2020 Umbrel. https://getumbrel.com and was available under the MIT license.
