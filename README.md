@@ -1,3 +1,5 @@
+Please don't try running this, it won't work yet.
+
 # compose
 
 > This software is currently in beta and is not considered secure. Please see [SECURITY.md](SECURITY.md) for more details.
@@ -112,7 +114,7 @@ We welcome and appreciate new contributions.
 
 If you're a developer looking to help but not sure where to begin, check out [these issues](https://github.com/BitcoinNodeCommunity/compose/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) that have specifically been marked as being friendly to new contributors.
 
-If you're looking for a bigger challenge, before opening a pull request please [create an issue](https://github.com/BitcoinNodeCommunity/compose/issues/new/choose) or [join our community chat](https://t.me/getumbrel) to get feedback, discuss the best way to tackle the challenge, and to ensure that there's no duplication of work.
+If you're looking for a bigger challenge, before opening a pull request please [create an issue](https://github.com/BitcoinNodeCommunity/compose/issues/new/choose) to get feedback, discuss the best way to tackle the challenge, and to ensure that there's no duplication of work.
 
 ---
 
@@ -120,3 +122,6 @@ _"Being open source means anyone can independently review the code. If it was cl
 
 [![License](https://img.shields.io/github/license/BitcoinNodeCommunity/compose?color=%235351FB)](https://github.com/BitcoinNodeCommunity/compose/blob/master/LICENSE)
 
+---
+
+This project was made possible by [Umbrel](https://getumbrel.com)
