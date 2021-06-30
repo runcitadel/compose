@@ -28,16 +28,16 @@ check_dependencies fswatch
 # Check OTA update scripts' dependencies
 check_dependencies rsync jq curl
 
-UMBREL_ROOT="$(dirname $(readlink -f "${BASH_SOURCE[0]}"))/.."
+NODE_ROOT="$(dirname $(readlink -f "${BASH_SOURCE[0]}"))/.."
 
-if [[ ! -d "$UMBREL_ROOT" ]]; then
-  echo "Root dir does not exist '$UMBREL_ROOT'"
+if [[ ! -d "$NODE_ROOT" ]]; then
+  echo "Root dir does not exist '$NODE_ROOT'"
   exit 1
 fi
 
 # Configure Umbrel if it isn't already configured
-if [[ ! -f "${UMBREL_ROOT}/statuses/configured" ]]; then
-  NETWORK="${NETWORK:-mainnet}" "${UMBREL_ROOT}/scripts/configure"
+if [[ ! -f "${NODE_ROOT}/statuses/configured" ]]; then
+  NETWORK="${NETWORK:-mainnet}" "${NODE_ROOT}/scripts/configure"
 fi
 
 echo
@@ -54,8 +54,8 @@ echo
 DEVICE_IP="$(hostname -I | cut -d ' ' -f 1)"
 DEVICE_HOSTNAME="$(hostname)"
 DEVICE_HOSTS="http://${DEVICE_IP},http://${DEVICE_HOSTNAME}.local,https://${DEVICE_HOSTNAME}.local,http://${DEVICE_HOSTNAME},https://${DEVICE_HOSTNAME}"
-if [[ -f "${UMBREL_ROOT}/tor/data/web/hostname" ]]; then
-    hidden_service_url=$(cat "${UMBREL_ROOT}/tor/data/web/hostname")
+if [[ -f "${NODE_ROOT}/tor/data/web/hostname" ]]; then
+    hidden_service_url=$(cat "${NODE_ROOT}/tor/data/web/hostname")
     DEVICE_HOSTS="${DEVICE_HOSTS},http://${hidden_service_url}"
 fi
 export DEVICE_HOSTS=$DEVICE_HOSTS
@@ -65,7 +65,7 @@ export DEVICE_HOSTS=$DEVICE_HOSTS
 export DOCKER_CLIENT_TIMEOUT=240
 export COMPOSE_HTTP_TIMEOUT=240
 
-cd "$UMBREL_ROOT"
+cd "$NODE_ROOT"
 
 echo "Starting karen..."
 echo

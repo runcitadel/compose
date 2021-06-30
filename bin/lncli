@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-UMBREL_ROOT="$(readlink -f $(dirname "${BASH_SOURCE[0]}")/..)"
+NODE_ROOT="$(readlink -f $(dirname "${BASH_SOURCE[0]}")/..)"
 
-result=$(docker-compose --file "${UMBREL_ROOT}/docker-compose.yml" exec lnd lncli $@)
+result=$(docker-compose --file "${NODE_ROOT}/docker-compose.yml" exec lnd lncli $@)
 
 # We need to echo with quotes to preserve output formatting
 echo "$result"

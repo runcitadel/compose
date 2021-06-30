@@ -2,7 +2,7 @@
 set -euo pipefail
 
 RELEASE=$1
-UMBREL_ROOT=$2
+NODE_ROOT=$2
 
 echo
 echo "======================================="

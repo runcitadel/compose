@@ -25,18 +25,18 @@ fi
 check_dependencies docker docker-compose dirname readlink
 
 # Switch to Umbrel's root directory
-UMBREL_ROOT="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")"/..)"
-if [[ ! -d "$UMBREL_ROOT" ]]; then
-  echo "Root dir does not exist '$UMBREL_ROOT'"
+NODE_ROOT="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")"/..)"
+if [[ ! -d "$NODE_ROOT" ]]; then
+  echo "Root dir does not exist '$NODE_ROOT'"
   exit 1
 fi
-cd "$UMBREL_ROOT"
+cd "$NODE_ROOT"
 
 # Make sure we use the status dir from the real Umbrel installation if this is
 # an OTA update.
-STATUS_DIR="${UMBREL_ROOT}/statuses"
-if [[ -f "${UMBREL_ROOT}/../.umbrel" ]]; then
-  STATUS_DIR="${UMBREL_ROOT}/../statuses"
+STATUS_DIR="${NODE_ROOT}/statuses"
+if [[ -f "${NODE_ROOT}/../.umbrel" ]]; then
+  STATUS_DIR="${NODE_ROOT}/../statuses"
 fi
 
 # Configure for mainnet or testnet or regtest depending
@@ -203,7 +203,7 @@ docker-compose pull --quiet
 
 echo "Configuring permissions..."
 echo
-chown -R 1000:1000 "$UMBREL_ROOT"
+chown -R 1000:1000 "$NODE_ROOT"
 
 # Create configured status
 touch "${STATUS_DIR}/configured"
