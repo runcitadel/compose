@@ -21,7 +21,9 @@ lnd/*
 tor/*
 db/*
 statuses/*
+electrs/*
 !statuses/update-status.json
+events/signals
 
 # Commit these empty directories
 
@@ -29,3 +31,5 @@ statuses/*
 !tor/data/.gitkeep
 !tor/run/.gitkeep
 !db/.gitkeep
+!electrs/.gitkeep
+!events/signals/.gitkeep
