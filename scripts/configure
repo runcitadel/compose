@@ -41,7 +41,7 @@ fi
 
 # Configure for mainnet or testnet or regtest depending
 # upon the user-supplied value of $NETWORK
-BITCOIN_NETWORK="${NETWORK:-mainnet}"
+BITCOIN_NETWORK="${NETWORK:-regtest}"
 
 if [ "$BITCOIN_NETWORK" != "mainnet" ] && [ "$BITCOIN_NETWORK" != "testnet" ] && [ "$BITCOIN_NETWORK" != "regtest" ]; then
   echo "Error: Umbrel can only be configured for mainnet (default), testnet or regtest"

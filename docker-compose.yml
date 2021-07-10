@@ -65,7 +65,7 @@ services:
                         ipv4_address: 10.11.0.3
         manager:
                 container_name: manager
-                image: communitybitcoinnode/manager:master@sha256:fa982e481dd7193cf63e55946e9ddaccb87e95ca1de6ab64c508cfa545388723
+                image: communitybitcoinnode/manager:master@sha256:848bf678c0f6fce167bf8c7b58b07d240056a69b5022f91fed5ac44e2bd252b4
                 depends_on: [ tor ]
                 restart: unless-stopped
                 stop_grace_period: 5m30s
@@ -116,6 +116,7 @@ services:
                     TOR_PROXY_IP: "10.11.5.1"
                     TOR_PROXY_PORT: "9150"
                     TOR_HIDDEN_SERVICE_DIR: "/var/lib/tor"
+                    DEBUG: '*'
                 networks:
                     net:
                         ipv4_address: 10.11.2.1
@@ -139,6 +140,7 @@ services:
                     LND_HOST: "10.11.1.2"
                     JWT_PUBLIC_KEY_FILE: "/jwt-public-key/jwt.pem"
                     DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://umbrel.local"}
+                    DEBUG: '*'
                 networks:
                     net:
                         ipv4_address: 10.11.2.2
