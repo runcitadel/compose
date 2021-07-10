@@ -44,10 +44,11 @@ services:
                         ipv4_address: 10.11.1.1
         lnd:
                 container_name: lnd
-                image: lncm/lnd:v0.12.1@sha256:bdc442c00bc4dd4d5bfa42efd7d977bfe4d21a08d466c933b9cff7cfc83e0c0e
+                image: lightninglabs/lnd:v0.13.1-beta.rc2
                 depends_on: [ tor, manager ]
                 volumes:
-                        - ${PWD}/lnd:/data/.lnd
+                        - ${PWD}/lnd:/root/.lnd
+                        - ${PWD}/walletpassword:/walletpassword
                 restart: unless-stopped
                 stop_grace_period: 5m30s
                 ports:
