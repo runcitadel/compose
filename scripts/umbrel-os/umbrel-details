@@ -100,7 +100,7 @@ def main():
 
     Your Umbrel is up and running at:
 
-        http://umbrel.local
+        http://citadel.local
         http://{ip}
         http://{tor_hostname}
     """

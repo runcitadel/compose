@@ -66,7 +66,7 @@ services:
                         ipv4_address: 10.11.0.3
         manager:
                 container_name: manager
-                image: communitybitcoinnode/manager:master@sha256:848bf678c0f6fce167bf8c7b58b07d240056a69b5022f91fed5ac44e2bd252b4
+                image: communitybitcoinnode/manager:master@sha256:690c9eac051377ee4632287f1f59ae51a0f99c7025b8210b77b81a243b9a1bfa
                 depends_on: [ tor ]
                 restart: unless-stopped
                 stop_grace_period: 5m30s
@@ -90,11 +90,11 @@ services:
                     JWT_PRIVATE_KEY_FILE: "/jwt-private-key/jwt.key"
                     JWT_EXPIRATION: "3600"
                     DOCKER_COMPOSE_DIRECTORY: $PWD
-                    DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://umbrel.local"}
+                    DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://citadel.local"}
                     DEVICE_HOSTNAME: ${DEVICE_HOSTNAME:-""}
                     MIDDLEWARE_API_URL: "http://10.11.2.2"
-                    UMBREL_SEED_FILE: "/db/umbrel-seed/seed"
-                    UMBREL_DASHBOARD_HIDDEN_SERVICE_FILE: "/var/lib/tor/web/hostname"
+                    SEED_FILE: "/db/umbrel-seed/seed"
+                    DASHBOARD_HIDDEN_SERVICE_FILE: "/var/lib/tor/web/hostname"
                     BITCOIN_P2P_HIDDEN_SERVICE_FILE: "/var/lib/tor/bitcoin-p2p/hostname"
                     BITCOIN_P2P_PORT: $BITCOIN_P2P_PORT
                     BITCOIN_RPC_HIDDEN_SERVICE_FILE: "/var/lib/tor/bitcoin-rpc/hostname"
@@ -108,7 +108,7 @@ services:
                     SHUTDOWN_SIGNAL_FILE: "/signals/shutdown"
                     REBOOT_SIGNAL_FILE: "/signals/reboot"
                     GITHUB_REPO: "getumbrel/umbrel"
-                    UMBREL_VERSION_FILE: "/info.json"
+                    VERSION_FILE: "/info.json"
                     UPDATE_STATUS_FILE: "/statuses/update-status.json"
                     UPDATE_SIGNAL_FILE: "/signals/update"
                     UPDATE_LOCK_FILE: "/statuses/update-in-progress"
@@ -123,7 +123,7 @@ services:
                         ipv4_address: 10.11.2.1
         middleware:
                 container_name: middleware
-                image: getumbrel/middleware:v0.1.10@sha256:ff3d5929a506739286f296c803105cca9d83e73e9eb1b7c6833533e345d77736
+                image: communitybitcoinnode/middleware:main@sha256:a3ae4d09676d193bb7a9b015a806df692ffdb5a8ef2faddc24a27542f72850da
                 depends_on: [ manager, bitcoin, lnd ]
                 command: ["./wait-for-node-manager.sh", "10.11.2.1", "npm", "start"]
                 restart: unless-stopped
@@ -140,7 +140,7 @@ services:
                     LND_NETWORK: $BITCOIN_NETWORK
                     LND_HOST: "10.11.1.2"
                     JWT_PUBLIC_KEY_FILE: "/jwt-public-key/jwt.pem"
-                    DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://umbrel.local"}
+                    DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://citadel.local"}
                     DEBUG: '*'
                 networks:
                     net:
