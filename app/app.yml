@@ -1,0 +1,16 @@
+metadata:
+  name: Example
+  id: "example"
+  version: "0.0.1"
+
+containers:
+  - name: web
+    image: runcitadel/web:v0.0.1
+    permissions:
+      - lnd
+      - bitcoin
+    env:
+      - EXAMPLE_VALUE: "${LND_GRPC_PORT}$BITCOIN_NETWORK"
+    ports:
+      - 80: 81
+    data: "/var/lib/data"

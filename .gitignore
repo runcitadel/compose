@@ -33,3 +33,7 @@ events/signals
 !db/.gitkeep
 !electrs/.gitkeep
 !events/signals/.gitkeep
+
+# Python stuff
+__pycache__
+*.pyc

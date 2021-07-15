@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "App",
+  "description": "An app for citadel",
+  "type": "object",
+  "properties": {
+    "metadata": {
+        "type": "object",
+        "properties": {
+            "id": {
+              "description": "The unique identifier for the app",
+              "type": "string"
+            },
+            "name": {
+              "description": "Displayed name of the app",
+              "type": "string"
+            },
+            "version":{
+              "description": "Displayed version for the app",
+              "type": "string"
+            }
+        },
+        "required": ["name", "id", "version"],
+        "additionalProperties": false
+    },
+    "containers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["lnd", "bitcoin", "electrs", "root", "hw"]
+            }
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "env": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "data": {
+              "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "required": ["name", "image"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["metadata", "containers"],
+  "additionalProperties": false
+}
