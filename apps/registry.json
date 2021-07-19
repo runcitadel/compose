@@ -1,1 +1,26 @@
-[]
+[
+    {
+        "category": "Example",
+        "defaultPassword": "",
+        "dependencies": [
+            "bitcoind",
+            "electrum"
+        ],
+        "description": "This is an example app, it does nothing useful. It is meant to be a template for building other apps. It is also meant to be a good example of how to use the app framework. (GitHub Copilot wrote  the above, how nice of them!) (The how nice of them has also been added by Copilot ;-))\n",
+        "developer": "Aaron Dewes & GitHub Copilot",
+        "gallery": [
+            "1.jpg",
+            "2.jpg",
+            "3.jpg"
+        ],
+        "id": "example",
+        "name": "Example",
+        "path": "",
+        "port": 80,
+        "repo": "https://github.com/example/example",
+        "support": "https://example.com/support",
+        "tagline": "A clever tagline",
+        "version": "0.0.1",
+        "website": "https://example.com"
+    }
+]

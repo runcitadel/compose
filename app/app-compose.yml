@@ -19,3 +19,4 @@ services:
     volumes:
     - ${LND_DATA_DIR}:/lnd:ro
     - ${APP_DATA_DIR}/web/:/var/lib/data
+    - ${APP_DATA_DIR}/web/:/var/lib/data

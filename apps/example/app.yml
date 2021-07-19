@@ -1,0 +1,35 @@
+metadata:
+  name: Example
+  version: "0.0.1"
+  category: "Example"
+  tagline: "A clever tagline"
+  description: >
+    This is an example app, it does nothing useful.
+    It is meant to be a template for building other apps.
+    It is also meant to be a good example of how to use the app framework.
+    (GitHub Copilot wrote  the above, how nice of them!)
+    (The how nice of them has also been added by Copilot ;-))
+  developer: "Aaron Dewes & GitHub Copilot"
+  website: "https://example.com"
+  dependencies:
+      - "bitcoind"
+      - "electrum"
+  repo: "https://github.com/example/example"
+  support: "https://example.com/support"
+  gallery: 
+      - "1.jpg"
+      - "2.jpg"
+      - "3.jpg"
+  port: 80
+
+containers:
+  - name: web
+    image: runcitadel/web:v0.0.1
+    permissions:
+      - lnd
+      - bitcoin
+    env:
+      - EXAMPLE_VALUE: "${LND_GRPC_PORT}$BITCOIN_NETWORK"
+    ports:
+      - 80: 81
+    data: "/var/lib/data"
