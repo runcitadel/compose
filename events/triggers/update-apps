@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+NODE_ROOT="$(readlink -f $(dirname "${BASH_SOURCE[0]}")/../..)"
+
+"${NODE_ROOT}/app/apps.py"

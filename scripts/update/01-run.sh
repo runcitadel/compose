@@ -4,7 +4,7 @@ set -euo pipefail
 RELEASE=$1
 NODE_ROOT=$2
 
-# Only used on Umbrel OS
+# Only used on Umbrel OS and Citadel OS
 SD_CARD_NODE_ROOT="/sd-root${NODE_ROOT}"
 
 echo
@@ -16,40 +16,41 @@ echo "======================================="
 echo
 
 [[ -f "/etc/default/umbrel" ]] && source "/etc/default/umbrel"
+[[ -f "/etc/default/citadel" ]] && source "/etc/default/citadel"
+
+IS_MIGRATING=0
+# Check if UMBREL_OS is set and CITADEL_OS is not
+if [[ -z "$UMBREL_OS" ]] && [[ -n "$CITADEL_OS" ]]; then
+    echo "Umbrel OS is being used..."
+    echo "Upgrading to Citadel OS..."
+    echo "export CITADEL_OS='0.0.1'" > /etc/default/citadel
+    IS_MIGRATING=1
+    CITADEL_OS='0.0.1'
+fi
 
 # Make Umbrel OS specific updates
-if [[ ! -z "${UMBREL_OS:-}" ]]; then
+if [[ ! -z "${CITADEL_OS:-}" ]]; then
     echo 
     echo "============================================="
-    echo "Installing on Umbrel OS $UMBREL_OS"
+    echo "Installing on Citadel OS $CITADEL_OS"
     echo "============================================="
     echo
-
-    # In Umbrel OS v0.1.2, we need to bind Avahi to only
-    # eth0,wlan0 interfaces to prevent hostname cycling
-    # https://github.com/getumbrel/umbrel-os/issues/76
-    # This patch can be safely removed from Umbrel v0.3.x+
-    if [[ $UMBREL_OS == "v0.1.2" ]] && [[ -f "/etc/avahi/avahi-daemon.conf" ]]; then
-        echo "Binding Avahi to eth0 and wlan0"
-        sed -i "s/#allow-interfaces=eth0/allow-interfaces=eth0,wlan0/g;" "/etc/avahi/avahi-daemon.conf"
-        systemctl restart avahi-daemon.service
-    fi
     
     # Update SD card installation
-    if  [[ -f "${SD_CARD_NODE_ROOT}/.umbrel" ]]; then
+    if  [[ -f "${SD_CARD_NODE_ROOT}/.umbrel" ]] || [[ -f "${SD_CARD_NODE_ROOT}/.citadel" ]]; then
         echo "Replacing ${SD_CARD_NODE_ROOT} on SD card with the new release"
         rsync --archive \
             --verbose \
-            --include-from="${NODE_ROOT}/.umbrel-${RELEASE}/scripts/update/.updateinclude" \
-            --exclude-from="${NODE_ROOT}/.umbrel-${RELEASE}/scripts/update/.updateignore" \
+            --include-from="${NODE_ROOT}/.citadel-${RELEASE}/scripts/update/.updateinclude" \
+            --exclude-from="${NODE_ROOT}/.citadel-${RELEASE}/scripts/update/.updateignore" \
             --delete \
-            "${NODE_ROOT}/.umbrel-${RELEASE}/" \
+            "${NODE_ROOT}/.citadel-${RELEASE}/" \
             "${SD_CARD_NODE_ROOT}/"
 
         echo "Fixing permissions"
         chown -R 1000:1000 "${SD_CARD_NODE_ROOT}/"
     else
-        echo "ERROR: No Umbrel installation found at SD root ${SD_CARD_NODE_ROOT}"
+        echo "ERROR: No Umbrel or Citadel installation found at SD root ${SD_CARD_NODE_ROOT}"
         echo "Skipping updating on SD Card..."
     fi
 fi
@@ -79,15 +80,22 @@ EOF
 cd "$NODE_ROOT"
 ./scripts/stop
 
+
 # Overlay home dir structure with new dir tree
 echo "Overlaying $NODE_ROOT/ with new directory tree"
 rsync --archive \
     --verbose \
-    --include-from="$NODE_ROOT/.umbrel-$RELEASE/scripts/update/.updateinclude" \
-    --exclude-from="$NODE_ROOT/.umbrel-$RELEASE/scripts/update/.updateignore" \
+    --include-from="$NODE_ROOT/.citadel-$RELEASE/scripts/update/.updateinclude" \
+    --exclude-from="$NODE_ROOT/.citadel-$RELEASE/scripts/update/.updateignore" \
     --delete \
     "$NODE_ROOT"/.umbrel-"$RELEASE"/ \
     "$NODE_ROOT"/
+
+echo "Regenerating app config"
+cat <<EOF > "$NODE_ROOT"/statuses/update-status.json
+{"state": "installing", "progress": 75, "description": "Updating apps...", "updateTo": "$RELEASE"}
+EOF
+"${NODE_ROOT}/app/apps.py"
 
 # Fix permissions
 echo "Fixing permissions"
@@ -102,53 +110,13 @@ EOF
 cd "$NODE_ROOT"
 ./scripts/start
 
-# Delete obselete backup lock file
-# https://github.com/getumbrel/umbrel/pull/213
-# Remove this in the next breaking update
-[[ -f "${NODE_ROOT}/statuses/backup-in-progress" ]] && rm -f "${NODE_ROOT}/statuses/backup-in-progress"
+# Make Citadel OS specific post-update changes
+if [[ ! -z "${CITADEL_OS:-}" ]]; then
 
-# Make Umbrel OS specific post-update changes
-if [[ ! -z "${UMBREL_OS:-}" ]]; then
-
-  # Delete unused Docker images on Umbrel OS
+  # Delete unused Docker images on Citadel OS
   echo "Deleting previous images"
   cat <<EOF > "$NODE_ROOT"/statuses/update-status.json
 {"state": "installing", "progress": 90, "description": "Deleting previous images", "updateTo": "$RELEASE"}
 EOF
   docker image prune --all --force
-
-  # Uninstall dphys-swapfile since we now use our own swapfile logic
-  # Remove this in the next breaking update
-  if command -v dphys-swapfile >/dev/null 2>&1; then
-    echo "Removing unused dependency \"dphys-swapfile\""
-    cat <<EOF > "$NODE_ROOT"/statuses/update-status.json
-{"state": "installing", "progress": 95, "description": "Removing unused dependencies", "updateTo": "$RELEASE"}
-EOF
-    apt-get remove -y dphys-swapfile
-  fi
-
-  # Setup swap if it doesn't already exist
-  # Remove this in the next breaking update
-  MOUNT_POINT="/mnt/data"
-  SWAP_DIR="/swap"
-  SWAP_FILE="${SWAP_DIR}/swapfile"
-  if ! df -h "${SWAP_DIR}" 2> /dev/null | grep --quiet '/dev/sd'; then
-    cat <<EOF > "$NODE_ROOT"/statuses/update-status.json
-{"state": "installing", "progress": 97, "description": "Setting up swap", "updateTo": "$RELEASE"}
-EOF
-
-    echo "Bind mounting external storage to ${SWAP_DIR}"
-    mkdir -p "${MOUNT_POINT}/swap" "${SWAP_DIR}"
-    mount --bind "${MOUNT_POINT}/swap" "${SWAP_DIR}"
-
-    echo "Checking ${SWAP_DIR} is now on external storage..."
-    df -h "${SWAP_DIR}" | grep --quiet '/dev/sd'
-
-    echo "Setting up swapfile"
-    rm "${SWAP_FILE}" || true
-    fallocate -l 4G "${SWAP_FILE}"
-    chmod 600 "${SWAP_FILE}"
-    mkswap "${SWAP_FILE}"
-    swapon "${SWAP_FILE}"
-  fi
 fi

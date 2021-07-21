@@ -19,12 +19,6 @@ for app in apps:
     with open(composeFile, "w") as f:
         f.write(yaml.dump(getApp(appYml)))
 
-outputCompose = yaml.dump(getApp("app.yml"), sort_keys=False)
-
-# Write outputCompose to a file
-with open('app-compose.yml', 'w') as f:
-    f.write(outputCompose)
-
 print("Generated configuration successfully")
 
 registry = getAppRegistry("../apps")
