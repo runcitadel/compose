@@ -1,4 +1,4 @@
-# Umbrel External Storage Mounter
+# Citadel External Storage Mounter
 # Installed at /etc/systemd/system/umbrel-external-storage.service
 
 [Unit]

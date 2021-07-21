@@ -1,4 +1,4 @@
-# Umbrel Connection Details Logger (TTY) 
+# Citadel Connection Details Logger (TTY) 
 # Installed at /etc/systemd/system/umbrel-connection-details.service
 
 [Unit]
@@ -9,7 +9,7 @@ After=umbrel-startup.service
 [Service]
 Type=oneshot
 Restart=no
-ExecStart=/home/umbrel/umbrel/scripts/umbrel-os/umbrel-details
+ExecStart=/home/umbrel/umbrel/scripts/umbrel-os/citadel-details
 User=root
 Group=root
 StandardOutput=tty

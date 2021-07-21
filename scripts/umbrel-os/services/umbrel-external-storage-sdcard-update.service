@@ -1,4 +1,4 @@
-# Umbrel External Storage SDcard Updater
+# Citadel External Storage SDcard Updater
 # Installed at /etc/systemd/system/umbrel-external-storage-sdcard-update.service
 
 [Unit]

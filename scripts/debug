@@ -16,10 +16,10 @@ upload() {
     --request POST \
     --silent \
     --data-binary @- \
-    https://api.debug.Node.tech/api/upload \
+    https://api.debug.umbrel.tech/api/upload \
     | jq '.logKey' \
     | sed 's/"//g' \
-    | awk -F '"' '{print "https://v3.debug.Node.tech/"$1}'
+    | awk -F '"' '{print "https://v3.debug.umbrel.tech/"$1}'
 }
 
 torupload() {

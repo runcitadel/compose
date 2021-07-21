@@ -15,7 +15,7 @@ check_dependencies () {
 }
 
 if [ ! "$(uname -s)" == "Linux" ]; then
-  echo "Sorry, Umbrel only supports Linux-based systems at this point."
+  echo "Sorry, Citadel only supports Linux-based systems at this point."
   echo
   echo "You may work around this by modifying the configuration script yourself, but it's highly experimental."
   echo "If you get it working, we hope you consider making a PR. :)"
@@ -24,7 +24,7 @@ fi
 
 check_dependencies docker docker-compose dirname readlink
 
-# Switch to Umbrel's root directory
+# Switch to Citadel's root directory
 NODE_ROOT="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")"/..)"
 if [[ ! -d "$NODE_ROOT" ]]; then
   echo "Root dir does not exist '$NODE_ROOT'"
@@ -32,7 +32,7 @@ if [[ ! -d "$NODE_ROOT" ]]; then
 fi
 cd "$NODE_ROOT"
 
-# Make sure we use the status dir from the real Umbrel installation if this is
+# Make sure we use the status dir from the real Citadel (or Umbrel) installation if this is
 # an OTA update.
 STATUS_DIR="${NODE_ROOT}/statuses"
 if [[ -f "${NODE_ROOT}/../.umbrel" ]]; then
@@ -44,7 +44,7 @@ fi
 BITCOIN_NETWORK="${NETWORK:-regtest}"
 
 if [ "$BITCOIN_NETWORK" != "mainnet" ] && [ "$BITCOIN_NETWORK" != "testnet" ] && [ "$BITCOIN_NETWORK" != "regtest" ]; then
-  echo "Error: Umbrel can only be configured for mainnet (default), testnet or regtest"
+  echo "Error: Citadel can only be configured for mainnet (default), testnet or regtest"
   exit 1
 fi
 
@@ -105,6 +105,11 @@ docker pull --quiet lncm/tor:0.4.5.7
 TOR_PASS=$("./scripts/rpcauth.py" "itdoesntmatterrightnow" | tail -1)
 TOR_HASHED_PASS=$(docker run --rm lncm/tor:0.4.5.7 --quiet --hash-password "$TOR_PASS")
 
+# Set LND fee URL for neutrino on mainnet
+FEE_URL=""
+if [[ "$BITCOIN_NETWORK" == "mainnet" ]] && [[ ! -f "${STATUS_DIR}/node-status-bitcoind-ready" ]]; then
+  FEE_URL="https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json"
+fi
 
 ##########################################################
 ### Update config files with configuration variables #####
@@ -165,6 +170,8 @@ sed -i "s/tor.password=<password>/tor.password=$TOR_PASS/g;" "$LND_CONF_FILE"
 sed -i "s/TOR_PASSWORD=<password>/TOR_PASSWORD=$TOR_PASS/g;" "$ENV_FILE"
 sed -i "s/TOR_HASHED_PASSWORD=<password>/TOR_HASHED_PASSWORD=$TOR_HASHED_PASS/g;" "$ENV_FILE"
 
+sed -i "s#<feeurl>#${FEE_URL}#g;" "$LND_CONF_FILE"
+
 # If node is already synced, do not reset to neutrino
 if [[ -f "${STATUS_DIR}/node-status-bitcoind-ready" ]]; then
   sed -i "s/bitcoin.node=.*/bitcoin.node=bitcoind/g;" "$LND_CONF_FILE"
@@ -211,6 +218,6 @@ chown -R 1000:1000 "$NODE_ROOT"
 touch "${STATUS_DIR}/configured"
 
 echo "Configuration successful"
-echo "You can now start Umbrel by running:"
+echo "You can now start Citadel by running:"
 echo "  sudo ./scripts/start"
 echo

@@ -35,7 +35,7 @@ if [[ ! -d "$NODE_ROOT" ]]; then
   exit 1
 fi
 
-# Configure Umbrel if it isn't already configured
+# Configure Citadel if it isn't already configured
 if [[ ! -f "${NODE_ROOT}/statuses/configured" ]]; then
   NETWORK="${NETWORK:-regtest}" "${NODE_ROOT}/scripts/configure"
 fi
@@ -43,7 +43,7 @@ fi
 echo
 echo "======================================"
 echo "============= STARTING ==============="
-echo "=============== NODE ================="
+echo "============== CITADEL ==============="
 echo "======================================"
 echo
 

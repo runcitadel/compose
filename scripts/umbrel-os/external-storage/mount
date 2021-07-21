@@ -4,13 +4,13 @@ set -euo pipefail
 
 # This script will:
 # - Look for external storage devices
-# - Check if they contain an Umbrel install
+# - Check if they contain a Citadel or Umbrel install
 # - If yes
 # - - Mount it
 # - If no
 # - - Format it
 # - - Mount it
-# - - Install Umbrel on it
+# - - Install Citadel on it
 # - Bind mount the external installation on top of the local installation
 
 NODE_ROOT="$(readlink -f $(dirname "${BASH_SOURCE[0]}")/../../..)"
@@ -80,7 +80,7 @@ format_block_device () {
   # We need to run sync here to make sure the filesystem is reflecting the
   # the latest changes in /dev/*
   sync
-  mkfs.ext4 -F -L umbrel "${partition_path}"
+  mkfs.ext4 -F -L citadel "${partition_path}"
 }
 
 # Mounts the device given in the first argument at $MOUNT_POINT
@@ -106,7 +106,7 @@ setup_new_device () {
   echo "Mounting partition..."
   mount_partition "${partition_path}"
 
-  echo "Copying Umbrel install to external storage..."
+  echo "Copying Citadel install to external storage..."
   mkdir -p "${EXTERNAL_NODE_ROOT}"
   cp  --recursive \
       --archive \
@@ -169,12 +169,12 @@ main () {
     echo "Yes, it is ext4"
     mount_partition "${partition_path}"
 
-    echo "Checking if device contains an Umbrel install..."
+    echo "Checking if device contains a Citadel or Umbrel install..."
     
     if [[ -f "${EXTERNAL_NODE_ROOT}"/.umbrel ]]; then
-      echo "Yes, it contains an Umbrel install"
+      echo "Yes, it contains a Citadel or Umbrel install"
     else 
-      echo "No, it doesn't contain an Umbrel install"
+      echo "No, it doesn't contain a Citadel or Umbrel install"
       echo "Unmounting partition..."
       unmount_partition
       setup_new_device $block_device $partition_path
@@ -190,7 +190,7 @@ main () {
     copy_docker_to_external_storage
   fi
 
-  echo "Bind mounting external storage over local Umbrel installation..."
+  echo "Bind mounting external storage over local installation..."
   mount --bind "${EXTERNAL_NODE_ROOT}" "${NODE_ROOT}"
 
   echo "Bind mounting external storage over local Docker data dir..."
@@ -204,7 +204,7 @@ main () {
   [[ ! -d "/sd-root" ]] && mkdir -p "/sd-root"
   mount --bind "/" "/sd-root"
 
-  echo "Checking Umbrel root is now on external storage..."
+  echo "Checking Citadel root is now on external storage..."
   sync
   sleep 1
   df -h "${NODE_ROOT}" | grep --quiet '/dev/sd'
