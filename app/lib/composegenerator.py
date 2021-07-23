@@ -53,7 +53,7 @@ permissions = {
             '${LND_DATA_DIR}:/lnd:ro'
         ]
     },
-    "bitcoin": {
+    "bitcoind": {
         "env": {
             "BITCOIN_IP":       "${BITCOIN_IP}",
             "BITCOIN_NETWORK":  "${BITCOIN_NETWORK}",

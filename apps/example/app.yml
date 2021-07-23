@@ -13,6 +13,7 @@ metadata:
   website: "https://example.com"
   dependencies:
       - "bitcoind"
+      - "lnd"
       - "electrum"
   repo: "https://github.com/example/example"
   support: "https://example.com/support"
@@ -27,9 +28,11 @@ containers:
     image: runcitadel/web:v0.0.1
     permissions:
       - lnd
-      - bitcoin
+      - bitcoind
     env:
       - EXAMPLE_VALUE: "${LND_GRPC_PORT}$BITCOIN_NETWORK"
     ports:
       - 80: 81
     data: "/var/lib/data"
+    ## TODO: Actual IP addresses
+    ip: 1.1.1.1

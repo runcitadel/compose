@@ -7,8 +7,7 @@ import yaml
 # Also check the path and defaultPassword and set them to an empty string if they don't exist
 # In addition, set id on the metadata to the name of the app
 # Return a list of all app's metadata
-def getAppRegistry(app_path):
-    apps = findAndValidateApps(app_path)
+def getAppRegistry(apps, app_path):
     app_metadata = []
     for app in apps:
         app_yml_path = os.path.join(app_path, app, 'app.yml')

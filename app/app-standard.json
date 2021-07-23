@@ -92,7 +92,7 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["lnd", "bitcoin", "electrs", "root", "hw"]
+              "enum": ["lnd", "bitcoind", "electrum", "root", "hw"]
             }
           },
           "ports": {
@@ -109,6 +109,10 @@
           },
           "data": {
               "type": "string"
+          },
+          "ip": {
+            "type": "string",
+            "description": "The IP address the container should bind to (Should be unique)"
           }
         },
         "additionalProperties": false
