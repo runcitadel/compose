@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import yaml
 import json
 from lib.composegenerator import convertToDockerComposeYML
@@ -6,6 +8,7 @@ from lib.metadata import getAppRegistry
 import os
 import argparse
 import requests
+from sys import argv
 
 # Initializes an argument parser with the descrition "Manage apps on your Citadel"
 parser = argparse.ArgumentParser(description="Manage apps on your Citadel")
@@ -19,6 +22,13 @@ parser = argparse.ArgumentParser(description="Manage apps on your Citadel")
 parser.add_argument('action', help='What to do with the app (database) either install, remove, list, download, update, update-online, compose, start, stop, restart or logs')
 parser.add_argument('app', help='The app to be used (optional, only for install, remove, compose, start, stop, restart, logs)', nargs='?', default=None)
 args = parser.parse_args()
+
+# Returns a list of every argument after the second one in sys.argv joined into a string by spaces
+def getArguments():
+    arguments = ""
+    for i in range(3, len(argv)):
+        arguments += argv[i] + " "
+    return arguments
 
 # If no action is specified, the list action is used
 if args.action is None:
@@ -80,6 +90,19 @@ def getApp(app):
         app = yaml.safe_load(f)
     return convertToDockerComposeYML(app)
 
+def compose(app, arguments):
+    # Runs a compose command in the app dir
+    # Before that, check if a docker-compose.yml exists in the app dir
+    composeFile = os.path.join("..", "apps", app, "docker-compose.yml")
+    if not os.path.isfile(composeFile):
+        print("Error: Could not find docker-compose.yml in " + app)
+        exit(1)
+    # Save the previous working directory and return to it later
+    oldDir = os.getcwd()
+    os.chdir(os.path.join("..", "apps", app))
+    os.system("docker-compose " + arguments)
+    os.chdir(oldDir)
+
 if args.action == 'install':
     print("Not implemented yet")
     exit(1)
@@ -87,20 +110,21 @@ elif args.action == 'remove':
     print("Not implemented yet")
     exit(1)
 elif args.action == 'compose':
-    print("Not implemented yet")
-    exit(1)
+    compose(args.app, getArguments())
+    exit(0)
 elif args.action == 'start':
-    print("Not implemented yet")
-    exit(1)
+    compose(args.app, 'up')
+    exit(0)
 elif args.action == 'stop':
-    print("Not implemented yet")
-    exit(1)
+    compose(args.app, 'down')
+    exit(0)
 elif args.action == 'restart':
-    print("Not implemented yet")
-    exit(1)
+    compose(args.app, 'down')
+    compose(args.app, 'up')
+    exit(0)
 elif args.action == 'logs':
-    print("Not implemented yet")
-    exit(1)
+    compose(args.app, 'logs ' + getArguments())
+    exit(0)
 elif args.action == 'list':
     apps = findAndValidateApps("../apps")
     for app in apps:
