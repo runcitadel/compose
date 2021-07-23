@@ -2,4 +2,4 @@
 
 NODE_ROOT="$(readlink -f $(dirname "${BASH_SOURCE[0]}")/../..)"
 
-"${NODE_ROOT}/app/apps.py" update
+"${NODE_ROOT}/app/apps.py" update-online

@@ -5,6 +5,7 @@ from lib.validate import findAndValidateApps
 from lib.metadata import getAppRegistry
 import os
 import argparse
+import requests
 
 # Initializes an argument parser with the descrition "Manage apps on your Citadel"
 parser = argparse.ArgumentParser(description="Manage apps on your Citadel")
@@ -15,7 +16,7 @@ parser = argparse.ArgumentParser(description="Manage apps on your Citadel")
 # If no app is specified, but the action is install, remove, compose, start, stop, restart or logs, print an error message and exit
 
 # Parses the arguments
-parser.add_argument('action', help='What to do with the app (database) either install, remove, list, download, update, compose, start, stop, restart or logs')
+parser.add_argument('action', help='What to do with the app (database) either install, remove, list, download, update, update-online, compose, start, stop, restart or logs')
 parser.add_argument('app', help='The app to be used (optional, only for install, remove, compose, start, stop, restart, logs)', nargs='?', default=None)
 args = parser.parse_args()
 
@@ -28,6 +29,50 @@ if args.action in ['install', 'remove', 'compose', 'start', 'stop', 'restart', '
     print('Error: No app specified')
     exit(1)
 
+def getAppYml(name):
+    url = 'https://raw.githubusercontent.com/runcitadel/compose/main/apps/' + name + '/' + 'app.yml'
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
+    else:
+        return False
+
+def getAppYmlPath(app):
+    return os.path.join("..", "apps", app, 'app.yml')
+
+def update():
+    apps = findAndValidateApps("../apps")
+    # Loop through the apps and generate valid compose files from them, then put these into the app dir
+    for app in apps:
+        composeFile = os.path.join("..", "apps", app, "docker-compose.yml")
+        appYml = os.path.join("..", "apps", app, "app.yml")
+        with open(composeFile, "w") as f:
+            f.write(yaml.dump(getApp(appYml), sort_keys=False))
+    print("Generated configuration successfully")
+
+    registry = getAppRegistry(apps, "../apps")
+    # Write the registry to ../apps/registry.json
+    with open(os.path.join('..', 'apps', 'registry.json'), 'w') as f:
+        f.write(json.dumps(registry, sort_keys=True, indent=4))
+    print("Wrote registry to registry.json")
+
+def download():
+    if(args.app is None):
+        apps = findAndValidateApps("../apps")
+        for app in apps:
+            data = getAppYml(app)
+            if data:
+                with open(getAppYmlPath(app), 'w') as f:
+                    f.write(data)
+            else:
+                print("Warning: Could not download " + app)
+    else:
+        data = getAppYml(args.app)
+        if data:
+            with open(getAppYmlPath(args.app), 'w') as f:
+                f.write(data)
+        else:
+            print("Warning: Could not download " + args.app)
 
 # Loads an app.yml and converts it to a docker-compose.yml
 def getApp(app):
@@ -62,25 +107,15 @@ elif args.action == 'list':
         print(app)
     exit(0)
 elif args.action == 'download':
-    print("Not implemented yet")
-    exit(1)
+    download()
+    exit(0)     
 elif args.action == 'update':
-    apps = findAndValidateApps("../apps")
-    # Loop through the apps and generate valid compose files from them, then put these into the app dir
-    for app in apps:
-        composeFile = os.path.join("..", "apps", app, "docker-compose.yml")
-        appYml = os.path.join("..", "apps", app, "app.yml")
-        with open(composeFile, "w") as f:
-            f.write(yaml.dump(getApp(appYml), sort_keys=False))
-    print("Generated configuration successfully")
-
-    registry = getAppRegistry(apps, "../apps")
-    # Write the registry to ../apps/registry.json
-    with open(os.path.join('..', 'apps', 'registry.json'), 'w') as f:
-        f.write(json.dumps(registry, sort_keys=True, indent=4))
-    print("Wrote registry to registry.json")
+    update()
+    exit(0)
+elif args.action == 'update-online':
+    download()
+    update()
     exit(0)
 else:
     print("Error: Unknown action")
     exit(1)
-
