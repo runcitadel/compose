@@ -100,7 +100,7 @@ def compose(app, arguments):
     # Save the previous working directory and return to it later
     oldDir = os.getcwd()
     os.chdir(os.path.join("..", "apps", app))
-    os.system("docker-compose " + arguments)
+    os.system("docker-compose --env-file ../../.env" + arguments)
     os.chdir(oldDir)
 
 if args.action == 'install':
