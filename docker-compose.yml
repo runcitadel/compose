@@ -14,7 +14,7 @@ services:
                   - "127.0.0.1:9150:29050"
                 networks:
                     net:
-                        ipv4_address: 10.11.5.1
+                        ipv4_address: ${TOR_PROXY_IP}
         nginx:
                 container_name: nginx
                 image: nginx:1.17.8@sha256:380eb808e2a3b0dd954f92c1cae2f845e6558a15037efefcabc5b4e03d666d03
@@ -27,7 +27,7 @@ services:
                     - "80:80"
                 networks:
                     net:
-                        ipv4_address: 10.11.0.2
+                        ipv4_address: ${NGINX_IP}
         bitcoin:
                 container_name: bitcoin
                 image: lncm/bitcoind:v0.21.1@sha256:5bedb46d698de16c59e9e43d31485d0d82239bd437d62ac7cf47ebb633214f37
@@ -41,7 +41,7 @@ services:
                     - "8333:8333"
                 networks:
                     net:
-                        ipv4_address: 10.11.1.1
+                        ipv4_address: ${BITCOIN_IP}
         lnd:
                 container_name: lnd
                 image: lightninglabs/lnd:v0.13.1-beta.rc2
@@ -55,7 +55,7 @@ services:
                     - "9735:9735"
                 networks:
                     net:
-                        ipv4_address: 10.11.1.2
+                        ipv4_address: ${LND_IP}
         dashboard:
                 container_name: dashboard
                 image: getumbrel/dashboard:v0.3.22@sha256:144105c0b7b6717f22e18171eec481897bb96344c7c298c681c9c04ce2b764a6
@@ -63,7 +63,7 @@ services:
                 stop_grace_period: 1m30s
                 networks:
                     net:
-                        ipv4_address: 10.11.0.3
+                        ipv4_address: ${DASHBOARD_IP}
         manager:
                 container_name: manager
                 image: communitybitcoinnode/manager:master@sha256:690c9eac051377ee4632287f1f59ae51a0f99c7025b8210b77b81a243b9a1bfa
@@ -92,7 +92,7 @@ services:
                     DOCKER_COMPOSE_DIRECTORY: $PWD
                     DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://citadel.local"}
                     DEVICE_HOSTNAME: ${DEVICE_HOSTNAME:-""}
-                    MIDDLEWARE_API_URL: "http://10.11.2.2"
+                    MIDDLEWARE_API_URL: "http://${MIDDLEWARE_IP}"
                     SEED_FILE: "/db/umbrel-seed/seed"
                     DASHBOARD_HIDDEN_SERVICE_FILE: "/var/lib/tor/web/hostname"
                     BITCOIN_P2P_HIDDEN_SERVICE_FILE: "/var/lib/tor/bitcoin-p2p/hostname"
@@ -114,18 +114,18 @@ services:
                     UPDATE_LOCK_FILE: "/statuses/update-in-progress"
                     BACKUP_STATUS_FILE: "/statuses/backup-status.json"
                     DEBUG_STATUS_FILE: "/statuses/debug-status.json"
-                    TOR_PROXY_IP: "10.11.5.1"
+                    TOR_PROXY_IP: "${TOR_PROXY_IP}"
                     TOR_PROXY_PORT: "9150"
                     TOR_HIDDEN_SERVICE_DIR: "/var/lib/tor"
                     DEBUG: '*'
                 networks:
                     net:
-                        ipv4_address: 10.11.2.1
+                        ipv4_address: ${MANAGER_IP}
         middleware:
                 container_name: middleware
                 image: communitybitcoinnode/middleware:main@sha256:a3ae4d09676d193bb7a9b015a806df692ffdb5a8ef2faddc24a27542f72850da
                 depends_on: [ manager, bitcoin, lnd ]
-                command: ["./wait-for-node-manager.sh", "10.11.2.1", "npm", "start"]
+                command: ["./wait-for-node-manager.sh", "${MANAGER_IP}", "npm", "start"]
                 restart: unless-stopped
                 depends_on: [ manager ]
                 volumes:
@@ -133,21 +133,21 @@ services:
                         - jwt-public-key:/jwt-public-key
                 environment:
                     PORT: "3005"
-                    BITCOIN_HOST: "10.11.1.1"
+                    BITCOIN_HOST: "${BITCOIN_IP}"
                     RPC_PORT: $BITCOIN_RPC_PORT
                     RPC_USER: $BITCOIN_RPC_USER
                     RPC_PASSWORD: $BITCOIN_RPC_PASS
                     LND_NETWORK: $BITCOIN_NETWORK
-                    LND_HOST: "10.11.1.2"
+                    LND_HOST: "${LND_IP}"
                     JWT_PUBLIC_KEY_FILE: "/jwt-public-key/jwt.pem"
                     DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://citadel.local"}
                     DEBUG: '*'
                 networks:
                     net:
-                        ipv4_address: 10.11.2.2
+                        ipv4_address: ${MIDDLEWARE_IP}
         neutrino-switcher:
                 container_name: neutrino-switcher
-                image: getumbrel/neutrino-switcher:v1.0.3
+                image: getumbrel/neutrino-switcher:v1.3.0@sha256:399ccea7f39129ff16c9c408f9e68a01dd4671f428273f3c3f401a8a0d2f7ddc
                 depends_on: [ bitcoin, lnd ]
                 restart: unless-stopped
                 volumes:
@@ -155,14 +155,14 @@ services:
                     - ${PWD}/statuses:/statuses
                     - /var/run/docker.sock:/var/run/docker.sock
                 environment:
-                    JSONRPCURL: "http://10.11.1.1:${BITCOIN_RPC_PORT}"
+                    JSONRPCURL: "http://${BITCOIN_IP}:${BITCOIN_RPC_PORT}"
                     RPCUSER: $BITCOIN_RPC_USER
                     RPCPASS: $BITCOIN_RPC_PASS
                     LND_CONTAINER_NAME: lnd
                     SLEEPTIME: 3600
                 networks:
                     net:
-                        ipv4_address: 10.11.5.2
+                        ipv4_address: ${NEUTRINO_SWITCHER_IP}
         electrs:
               container_name: electrs
               image: getumbrel/electrs:v0.8.9@sha256:592fb50cdf16fa2b2e20f7c0a28d4a132c2ee636d89d4b9c24f14886763b5478
@@ -176,13 +176,13 @@ services:
                   - "50001:50001"
               networks:
                   net:
-                      ipv4_address: 10.11.4.0
+                      ipv4_address: ${ELECTRUM_IP}
 networks:
     net:
         ipam:
             driver: default
             config:
-                - subnet: 10.11.0.0/16
+                - subnet: "$NETWORK_IP/24"
 
 
 volumes:

@@ -50,7 +50,7 @@ else:
   print("============ CONFIGURING =============")
   reconfiguring=False
 
-print("========= CITADEL ({}) ==========".format(BITCOIN_NETWORK))
+print("============== CITADEL  ==============")
 print("======================================")
 print()
 
@@ -79,7 +79,14 @@ if reconfiguring:
     dotenv=parse_dotenv('../.env')
   else:
     dotenv=parse_dotenv('./.env')
-  BITCOIN_NETWORK=dotenv['BITCOIN_NETWORK']
+
+  BITCOIN_NETWORK=os.environ.get('OVERWRITE_NETWORK') or dotenv['BITCOIN_NETWORK']
+  # Check if network neither mainnet nor testnet nor regtest
+  if BITCOIN_NETWORK not in ['mainnet', 'testnet', 'regtest']:
+      print('Error: Network must be either mainnet, testnet, or regtest!')
+      exit(1)
+  print("Using {} network".format(BITCOIN_NETWORK))
+  print()
   BITCOIN_RPC_PORT=dotenv['BITCOIN_RPC_PORT']
   BITCOIN_P2P_PORT=dotenv['BITCOIN_P2P_PORT']
   BITCOIN_RPC_USER=dotenv['BITCOIN_RPC_USER']
@@ -127,6 +134,28 @@ elif BITCOIN_NETWORK == "regtest":
 else:
   exit(1)
 
+# IP addresses for services
+
+NETWORK_IP=          "10.21.21.0"
+GATEWAY_IP=          "10.21.21.1"
+NGINX_IP=            "10.21.21.2"
+DASHBOARD_IP=        "10.21.21.3"
+MANAGER_IP=          "10.21.21.4"
+MIDDLEWARE_IP=       "10.21.21.5"
+NEUTRINO_SWITCHER_IP="10.21.21.6"
+BITCOIN_IP=          "10.21.21.7"
+LND_IP=              "10.21.21.8"
+TOR_PROXY_IP=        "10.21.21.9"
+ELECTRUM_IP=         "10.21.21.10"
+BITCOIN_ZMQ_RAWBLOCK_PORT="28332"
+BITCOIN_ZMQ_RAWTX_PORT="28333"
+BITCOIN_ZMQ_HASHBLOCK_PORT="28334"
+LND_GRPC_PORT="10009"
+LND_REST_PORT="8080"
+ELECTRUM_PORT="50001"
+TOR_PROXY_PORT="9050"
+NGINX_PORT=os.environ.get('NGINX_PORT') or "80"
+
 
 
 # Set LND fee URL for neutrino on mainnet
@@ -159,6 +188,8 @@ def replace_vars(file_path):
     file_contents = file.read()
   return re.sub(r'<(.*?)>', lambda m: get_var(convert_to_upper(m.group(1)), locals()), file_contents)
 
+print("Generating config files")
+print()
 with open('./lnd/lnd.conf', 'w') as file:
   file.write(replace_vars('./templates/lnd-sample.conf'))
 with open('./bitcoin/bitcoin.conf', 'w') as file:
@@ -169,7 +200,8 @@ with open('./.env', 'w') as file:
   file.write(replace_vars('./templates/.env-sample'))
 with open('./electrs/electrs.toml', 'w') as file:
   file.write(replace_vars('./templates/electrs-sample.toml'))
-
+with open('./nginx/nginx.conf', 'w') as file:
+  file.write(replace_vars('./templates/nginx-sample.conf'))
 
 print("Pulling Docker images")
 print()

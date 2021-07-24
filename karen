@@ -62,7 +62,7 @@ fswatch -0 --event=PlatformSpecific $signal_dir | while read -d "" event; do
     args="$root_dir/../statuses/password-updated"
   fi
 
-  if [[ -x "$trigger" ]] && [[ ! -d "$trigger" ]]; then
+  if [[ -x "$trigger" ]] && [[ ! -d "$trigger" ]] && [[ "$trigger" != ".gitkeep" ]]; then
     echo "karen is getting triggered!"
     "$trigger" &
   else
