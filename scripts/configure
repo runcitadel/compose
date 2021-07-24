@@ -167,6 +167,9 @@ with open('./tor/torrc', 'w') as file:
   file.write(replace_vars('./templates/torrc-sample'))
 with open('./.env', 'w') as file:
   file.write(replace_vars('./templates/.env-sample'))
+with open('./electrs/electrs.toml', 'w') as file:
+  file.write(replace_vars('./templates/electrs-sample.toml'))
+
 
 print("Pulling Docker images")
 print()
