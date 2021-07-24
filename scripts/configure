@@ -1,223 +1,182 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env python3
 
-##########################################################
-################## Check dependencies ####################
-##########################################################
+import sys
+import os
+from lib.rpcauth import get_data
+import re
 
-check_dependencies () {
-  for cmd in "$@"; do
-    if ! command -v $cmd >/dev/null 2>&1; then
-      echo "This script requires \"${cmd}\" to be installed"
-      exit 1
-    fi
-  done
-}
+# Print an error if the user isn't running on Linux.
+if sys.platform != 'linux':
+    print('This script only works on Linux!')
+    exit(1)
 
-if [ ! "$(uname -s)" == "Linux" ]; then
-  echo "Sorry, Citadel only supports Linux-based systems at this point."
-  echo
-  echo "You may work around this by modifying the configuration script yourself, but it's highly experimental."
-  echo "If you get it working, we hope you consider making a PR. :)"
-  exit 1
-fi
+# Print an error if user is not root
+if os.getuid() != 0:
+  print('This script must be run as root!')
+  exit(1)
 
-check_dependencies docker docker-compose dirname readlink
+# Check if the docker-compose binary is installed.
+import subprocess
+try:
+    subprocess.check_call(['docker-compose', '--version'])
+except:
+    print('Docker-compose is not installed!')
+    exit(1)
 
-# Switch to Citadel's root directory
-NODE_ROOT="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")"/..)"
-if [[ ! -d "$NODE_ROOT" ]]; then
-  echo "Root dir does not exist '$NODE_ROOT'"
-  exit 1
-fi
-cd "$NODE_ROOT"
-
-# Make sure we use the status dir from the real Citadel (or Umbrel) installation if this is
-# an OTA update.
-STATUS_DIR="${NODE_ROOT}/statuses"
-if [[ -f "${NODE_ROOT}/../.umbrel" ]]; then
-  STATUS_DIR="${NODE_ROOT}/../statuses"
-fi
+# Switch to Citadel root directory.
+NODE_ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(NODE_ROOT)
+status_dir='./statuses'
+# Make sure to use the main status dir for updates
+if os.path.isfile('../.umbrel'):
+    status_dir='../statuses'
 
 # Configure for mainnet or testnet or regtest depending
 # upon the user-supplied value of $NETWORK
-BITCOIN_NETWORK="${NETWORK:-regtest}"
+# If the network is not specified, then use the mainnet
+BITCOIN_NETWORK=os.environ.get('NETWORK') or 'mainnet'
 
-if [ "$BITCOIN_NETWORK" != "mainnet" ] && [ "$BITCOIN_NETWORK" != "testnet" ] && [ "$BITCOIN_NETWORK" != "regtest" ]; then
-  echo "Error: Citadel can only be configured for mainnet (default), testnet or regtest"
-  exit 1
-fi
+# Check if network neither mainnet nor testnet nor regtest
+if BITCOIN_NETWORK not in ['mainnet', 'testnet', 'regtest']:
+    print('Error: Network must be either mainnet, testnet, or regtest!')
+    exit(1)
 
-echo
-echo "======================================"
-if [[ -f "${STATUS_DIR}/configured" ]]; then
-  echo "=========== RECONFIGURING ============"
-else
-  echo "============ CONFIGURING ============="
-fi
-echo "========= UMBREL (${NETWORK}) ==========="
-echo "======================================"
-echo
+print()
+print("======================================")
+if os.path.isfile(status_dir+'/configured'):
+  print("=========== RECONFIGURING ============")
+  reconfiguring=True
+else:
+  print("============ CONFIGURING =============")
+  reconfiguring=False
 
+print("========= CITADEL ({}) ==========".format(BITCOIN_NETWORK))
+print("======================================")
+print()
 
-##########################################################
-############### Setup configuration files ###############
-##########################################################
+# Parse a dotenv file
+def parse_dotenv(file_path):
+    with open(file_path, 'r') as file:
+      file_contents = file.read()
+    values = {}
+    lines = file_contents.split('\n')
+    for line in lines:
+      line = line.strip()
+      if line.startswith('#') or not line:
+        continue
+      # Append to values
+      key, value = line.split('=', 1)
+      values[key] = value
+    return values
 
-# Store paths to intermediary config files
-BITCOIN_CONF_FILE="./templates/bitcoin.conf"
-LND_CONF_FILE="./templates/lnd.conf"
-TOR_CONF_FILE="./templates/torrc"
-ENV_FILE="./templates/.env"
-
-# Remove intermediary files if they exist from any
-# previous unclean configuration run
-[[ -f "$BITCOIN_CONF_FILE" ]] && rm -f "$BITCOIN_CONF_FILE"
-[[ -f "$LND_CONF_FILE" ]] && rm -f "$LND_CONF_FILE"
-[[ -f "$TOR_CONF_FILE" ]] && rm -f "$TOR_CONF_FILE"
-[[ -f "$ENV_FILE" ]] && rm -f "$ENV_FILE"
-
-# Copy template configs to intermediary configs
-[[ -f "./templates/bitcoin-sample.conf" ]] && cp "./templates/bitcoin-sample.conf" "$BITCOIN_CONF_FILE"
-[[ -f "./templates/lnd-sample.conf" ]] && cp "./templates/lnd-sample.conf" "$LND_CONF_FILE"
-[[ -f "./templates/torrc-sample" ]] && cp "./templates/torrc-sample" "$TOR_CONF_FILE"
-[[ -f "./templates/.env-sample" ]] && cp "./templates/.env-sample" "$ENV_FILE"
-
-
+  
 ##########################################################
 ############ Generate configuration variables ############
 ##########################################################
 
-# Generate RPC credentials
-echo "Generating auth credentials"
-echo
-BITCOIN_RPC_USER="citadel"
-BITCOIN_RPC_DETAILS=$("./scripts/rpcauth.py" "$BITCOIN_RPC_USER")
-BITCOIN_RPC_AUTH=$(echo "$BITCOIN_RPC_DETAILS" | head -2 | tail -1)
-BITCOIN_RPC_PASS=$(echo "$BITCOIN_RPC_DETAILS" | tail -1)
-BITCOIN_RPC_PORT=8332
-BITCOIN_P2P_PORT=8333
+if reconfiguring:
+  if os.path.isfile('../.umbrel'):
+    dotenv=parse_dotenv('../.env')
+  else:
+    dotenv=parse_dotenv('./.env')
+  BITCOIN_NETWORK=dotenv['BITCOIN_NETWORK']
+  BITCOIN_RPC_PORT=dotenv['BITCOIN_RPC_PORT']
+  BITCOIN_P2P_PORT=dotenv['BITCOIN_P2P_PORT']
+  BITCOIN_RPC_USER=dotenv['BITCOIN_RPC_USER']
+  BITCOIN_RPC_PASS=dotenv['BITCOIN_RPC_PASS']
+  BITCOIN_RPC_AUTH=dotenv['BITCOIN_RPC_AUTH']
+  TOR_PASSWORD=dotenv['TOR_PASSWORD']
+  TOR_HASHED_PASSWORD=dotenv['TOR_HASHED_PASSWORD']
+else:
+  # Generate RPC credentials
+  print("Generating auth credentials")
+  print()
+  BITCOIN_RPC_USER="citadel"
+  BITCOIN_RPC_DETAILS=get_data(BITCOIN_RPC_USER)
+  BITCOIN_RPC_AUTH=BITCOIN_RPC_DETAILS['auth']
+  BITCOIN_RPC_PASS=BITCOIN_RPC_DETAILS['password']
 
-# Pull Tor image and generate Tor password
-echo "Generating Tor password"
-echo
-docker pull --quiet lncm/tor:0.4.5.7
-TOR_PASS=$("./scripts/rpcauth.py" "itdoesntmatterrightnow" | tail -1)
-TOR_HASHED_PASS=$(docker run --rm lncm/tor:0.4.5.7 --quiet --hash-password "$TOR_PASS")
+  # Pull Tor image and generate Tor password
+  print("Generating Tor password")
+  print()
+  os.system('docker pull --quiet lncm/tor:0.4.5.7')
+  TOR_PASSWORD=get_data('itdoesntmatter')['password']
 
-# Set LND fee URL for neutrino on mainnet
-FEE_URL=""
-if [[ "$BITCOIN_NETWORK" == "mainnet" ]] && [[ ! -f "${STATUS_DIR}/node-status-bitcoind-ready" ]]; then
-  FEE_URL="https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json"
-fi
+  # run 'docker run --rm lncm/tor:0.4.5.7 --quiet --hash-password "$TOR_PASS"' and get its output
+  # this is the password that is used to connect to the Tor network
+  # the password is stored in the .env file
+  TOR_HASHED_PASSWORD=os.popen('docker run --rm lncm/tor:0.4.5.7 --quiet --hash-password "{}"'.format(TOR_PASSWORD)).read()[:-1]
 
-##########################################################
-### Update config files with configuration variables #####
-##########################################################
-
-if [ "$BITCOIN_NETWORK" == "testnet" ]; then
-  # Set testnet ports
+BITCOIN_NODE="neutrino"
+NEUTRINO_PEERS=""
+if BITCOIN_NETWORK == "mainnet":
+  BITCOIN_RPC_PORT=8332
+  BITCOIN_P2P_PORT=8333
+elif BITCOIN_NETWORK == "testnet":
   BITCOIN_RPC_PORT=18332
   BITCOIN_P2P_PORT=18333
-  # Switch Bitcoin Core to testnet
-  sed -i '1s/^/testnet=1\n[test]\n\n/' "$BITCOIN_CONF_FILE"
-  # Switch LND to testnet
-  sed -i "s/bitcoin.mainnet=1/bitcoin.testnet=1/g;" "$LND_CONF_FILE"
-  # Uncomment testnet neutrino block and peers
-  sed -i "s/\# \[neutrino\]/\[neutrino\]/g;" "$LND_CONF_FILE"
-  sed -i "s/\# neutrino.addpeer=testnet1-btcd.zaphq.io/neutrino.addpeer=testnet1-btcd.zaphq.io/g;" "$LND_CONF_FILE"
-  sed -i "s/\# neutrino.addpeer=testnet2-btcd.zaphq.io/neutrino.addpeer=testnet2-btcd.zaphq.io/g;" "$LND_CONF_FILE"
-
-fi
-
-if [ "$BITCOIN_NETWORK" == "regtest" ]; then
-  # Set regtest ports
-  BITCOIN_RPC_PORT=18443
-  BITCOIN_P2P_PORT=18444
-  # Switch Bitcoin Core to regtest
-  sed -i '1s/^/regtest=1\n[regtest]\n\n/' "$BITCOIN_CONF_FILE"
-  # Switch LND to regtest
-  sed -i "s/bitcoin.mainnet=1/bitcoin.regtest=1/g;" "$LND_CONF_FILE"
-  # Use bitcoind as the node
-  sed -i "s/bitcoin.node=neutrino/bitcoin.node=bitcoind/g;" "$LND_CONF_FILE"
-fi
-
-# Update RPC and P2P Ports
-sed -i "s/rpcport=<port>/rpcport=$BITCOIN_RPC_PORT/g;" "$BITCOIN_CONF_FILE"
-sed -i "s/port=<port>/port=$BITCOIN_P2P_PORT/g;" "$BITCOIN_CONF_FILE"
-sed -i "s/<bitcoin-p2p-port>/$BITCOIN_P2P_PORT/g;" "$TOR_CONF_FILE"
-sed -i "s/<bitcoin-rpc-port>/$BITCOIN_RPC_PORT/g;" "$TOR_CONF_FILE"
-sed -i "s/BITCOIN_RPC_PORT=<port>/BITCOIN_RPC_PORT=$BITCOIN_RPC_PORT/g;" "$ENV_FILE"
-sed -i "s/BITCOIN_RPC_AUTH=<rpcauth>/BITCOIN_RPC_AUTH=$BITCOIN_RPC_AUTH/g;" "$ENV_FILE"
-sed -i "s/BITCOIN_P2P_PORT=<port>/BITCOIN_P2P_PORT=$BITCOIN_P2P_PORT/g;" "$ENV_FILE"
-
-# Add rpcauth to bitcoin.conf
-sed -i "s/rpcauth=<rpcauth>/$BITCOIN_RPC_AUTH/g;" "$BITCOIN_CONF_FILE"
-# Add RPC credentials to lnd.conf
-sed -i "s/bitcoind.rpcuser=<username>/bitcoind.rpcuser=$BITCOIN_RPC_USER/g;" "$LND_CONF_FILE"
-sed -i "s/bitcoind.rpcpass=<password>/bitcoind.rpcpass=$BITCOIN_RPC_PASS/g;" "$LND_CONF_FILE"
-# Add RPC credentials to env file
-sed -i "s/BITCOIN_RPC_USER=<username>/BITCOIN_RPC_USER=$BITCOIN_RPC_USER/g;" "$ENV_FILE"
-sed -i "s/BITCOIN_RPC_PASS=<password>/BITCOIN_RPC_PASS=$BITCOIN_RPC_PASS/g;" "$ENV_FILE"
-
-# Add chain to env file
-sed -i "s/BITCOIN_NETWORK=<network>/BITCOIN_NETWORK=$BITCOIN_NETWORK/g;" "$ENV_FILE"
-
-# Add Tor password
-sed -i "s/HashedControlPassword <password>/HashedControlPassword $TOR_HASHED_PASS/g;" "$TOR_CONF_FILE"
-sed -i "s/torpassword=<password>/torpassword=$TOR_PASS/g;" "$BITCOIN_CONF_FILE"
-sed -i "s/tor.password=<password>/tor.password=$TOR_PASS/g;" "$LND_CONF_FILE"
-sed -i "s/TOR_PASSWORD=<password>/TOR_PASSWORD=$TOR_PASS/g;" "$ENV_FILE"
-sed -i "s/TOR_HASHED_PASSWORD=<password>/TOR_HASHED_PASSWORD=$TOR_HASHED_PASS/g;" "$ENV_FILE"
-
-sed -i "s#<feeurl>#${FEE_URL}#g;" "$LND_CONF_FILE"
-
-# If node is already synced, do not reset to neutrino
-if [[ -f "${STATUS_DIR}/node-status-bitcoind-ready" ]]; then
-  sed -i "s/bitcoin.node=.*/bitcoin.node=bitcoind/g;" "$LND_CONF_FILE"
-fi
-
-##########################################################
-############### Performance optimizations ################
-##########################################################
-
-echo
-echo "Making performance optimizations"
-echo
-
-echo "Setting dbcache size"
-echo
-DBCACHE_SIZE=$(awk '/MemTotal/{printf "%d\n", ($2/2^10 * 0.5) - 300}' /proc/meminfo)
-sed -i -e "s/dbcache=<size>/dbcache=$DBCACHE_SIZE/g" "$BITCOIN_CONF_FILE"
-
-# TODO: Adjust prune size based on available disk space
-
-##########################################################
-############## Override main config files ################
-##########################################################
-
-mv -f "$BITCOIN_CONF_FILE" "./bitcoin/bitcoin.conf"
-mv -f "$LND_CONF_FILE" "./lnd/lnd.conf"
-mv -f "$TOR_CONF_FILE" "./tor/torrc"
-mv -f "$ENV_FILE" "./.env"
+  NEUTRINO_PEERS='''
+[neutrino]
+neutrino.addpeer=testnet1-btcd.zaphq.io
+neutrino.addpeer=testnet2-btcd.zaphq.io
+  '''
+elif BITCOIN_NETWORK == "regtest":
+  BITCOIN_RPC_PORT=18334
+  BITCOIN_P2P_PORT=18335
+  BITCOIN_NODE="bitcoind"
+else:
+  exit(1)
 
 
-##########################################################
-################ Configuration complete ##################
-##########################################################
 
-echo "Pulling Umbrel Docker images"
-echo
-docker-compose pull --quiet
+# Set LND fee URL for neutrino on mainnet
+LND_FEE_URL=""
+# If the network is mainnet and status_dir/node-status-bitcoind-ready doesn't exist, set the FEE_URL
+if BITCOIN_NETWORK == 'mainnet' and not os.path.isfile(status_dir+'/node-status-bitcoind-ready'):
+   LND_FEE_URL="feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json"
 
-echo "Configuring permissions..."
-echo
-chown -R 1000:1000 "$NODE_ROOT"
+# Checks if a variable with the name exists, if not, check if an env var with the name existts
+# if neither exists, then exit with an error
+def get_var(var_name, other_locals):
+  if var_name in locals():
+    return str(locals()[var_name])
+  elif var_name in other_locals:
+    return str(other_locals[var_name])
+  elif var_name in globals():
+    return str(globals()[var_name])
+  else:
+    print("Error: {} is not defined!".format(var_name))
+    exit(1)
 
-# Create configured status
-touch "${STATUS_DIR}/configured"
+# Converts a string to uppercase, also replaces all - with _
+def convert_to_upper(string):
+  return string.upper().replace('-', '_')
 
-echo "Configuration successful"
-echo "You can now start Citadel by running:"
-echo "  sudo ./scripts/start"
-echo
+# Put variables in the config file. A config file accesses an env var $EXAMPLE_VARIABLE by containing <example-variable>
+# in the config file. Check for such occurences and replace them with the actual variable
+def replace_vars(file_path):
+  with open(file_path, 'r') as file:
+    file_contents = file.read()
+  return re.sub(r'<(.*?)>', lambda m: get_var(convert_to_upper(m.group(1)), locals()), file_contents)
+
+with open('./lnd/lnd.conf', 'w') as file:
+  file.write(replace_vars('./templates/lnd-sample.conf'))
+with open('./bitcoin/bitcoin.conf', 'w') as file:
+  file.write(replace_vars('./templates/bitcoin-sample.conf'))
+with open('./tor/torrc', 'w') as file:
+  file.write(replace_vars('./templates/torrc-sample'))
+with open('./.env', 'w') as file:
+  file.write(replace_vars('./templates/.env-sample'))
+
+print("Pulling Docker images")
+print()
+os.system('docker-compose pull --quiet')
+print("Configuring permissions")
+print()
+os.system('chown -R 1000:1000 {}'.format(NODE_ROOT))
+# Touch status_dir/configured
+with open(status_dir+'/configured', 'w') as file:
+  file.write('')
+print("Configuration successful")
+print("You can now start Citadel by running:")
+print("  sudo ./scripts/start")
