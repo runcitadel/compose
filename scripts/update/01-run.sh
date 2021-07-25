@@ -24,6 +24,9 @@ if [[ -z "$UMBREL_OS" ]] && [[ -n "$CITADEL_OS" ]]; then
     echo "Umbrel OS is being used..."
     echo "Upgrading to Citadel OS..."
     echo "export CITADEL_OS='0.0.1'" > /etc/default/citadel
+    touch ${NODE_ROOT}/was-umbrel
+    # Change hostname to citadel
+    echo "citadel" > /etc/hostname
     IS_MIGRATING=1
     CITADEL_OS='0.0.1'
 fi
