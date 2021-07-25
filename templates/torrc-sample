@@ -1,6 +1,6 @@
 # Bind only to the tor IP within the container
 SocksPort   <tor-proxy-ip>:<tor-proxy-port>
-ControlPort <tor-proxy-ip>:29051
+ControlPort <tor-proxy-ip>:<tor-control-port>
 
 # Dashboard Hidden Service
 HiddenServiceDir /var/lib/tor/web
