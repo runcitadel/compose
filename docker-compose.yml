@@ -117,7 +117,6 @@ services:
                     TOR_PROXY_IP: "${TOR_PROXY_IP}"
                     TOR_PROXY_PORT: "9150"
                     TOR_HIDDEN_SERVICE_DIR: "/var/lib/tor"
-                    DEBUG: '*'
                 networks:
                     net:
                         ipv4_address: ${MANAGER_IP}
@@ -141,7 +140,6 @@ services:
                     LND_HOST: "${LND_IP}"
                     JWT_PUBLIC_KEY_FILE: "/jwt-public-key/jwt.pem"
                     DEVICE_HOSTS: ${DEVICE_HOSTS:-"http://citadel.local"}
-                    DEBUG: '*'
                 networks:
                     net:
                         ipv4_address: ${MIDDLEWARE_IP}
