@@ -1,5 +1,7 @@
 Please don't try running this, it won't work yet.
 
+---
+
 # compose
 
 > This software is currently in beta and is not considered secure. Please see [SECURITY.md](SECURITY.md) for more details.
